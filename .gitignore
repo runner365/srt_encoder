@@ -3,8 +3,6 @@
 *.o
 *.log
 .vscode/*
-*.so
-*.a
 srt_encoder
 
 
