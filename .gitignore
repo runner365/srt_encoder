@@ -1,0 +1,10 @@
+.DS_Store
+*.obj
+*.o
+*.log
+.vscode/*
+*.so
+*.a
+srt_encoder
+
+
