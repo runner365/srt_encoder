@@ -7,7 +7,7 @@ srt encoder是基于srt发送的测试工具。<br/>
 
 备注：<br/>
 * 本示例仅仅是基础的bbr算法示例，用户可以自己实现接口类(class CongestionCtrlI)中的接口来改进bbr算法；
-* SRT还是一个在发展中的协议，关注其拥塞控制的对外参数更新；
+* SRT还是一个在发展中的协议，关注其拥塞控制的对外参数更新，准确度也在提升中;
 
 ## 2. 如何编译
 依赖ffmpeg动态库，libsrt, libx264, lib265, libfdk_aac等。
