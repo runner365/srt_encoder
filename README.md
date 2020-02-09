@@ -1,7 +1,7 @@
 # SRT Encoder
-srt encoder是基于srt发送的测试工具。<br/>
-基于srt协议中的rtt，maxBw，inflight等信息预测低延时的出口带宽，动态的调整编码bitrate，从而实现基于网络出口带宽的svc编码。
-
+SRT Encoder基于srt自适应码率的编码器。<br/>
+基于srt协议中的rtt，maxBw，inflight等信息预测低延时的出口带宽，动态的调整编码bitrate，从而实现基于网络出口带宽的编码。
+github地址: [https://github.com/runner365/srt_encoder](https://github.com/runner365/srt_encoder)
 ## 1. 原理
 基于bbr基本拥塞控制算法，通过一个周期内(1~2seconds)的minRTT, maxBw, 和当前的inflight，预测出编码bitrate的状态机(保持，增加，减少)。<br/>
 
