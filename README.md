@@ -17,7 +17,8 @@ github地址: [https://github.com/runner365/srt_encoder](https://github.com/runn
 ### 3.1 srt in srs
 srs地址：[https://github.com/ossrs/srs](https://github.com/ossrs/srs) <br/>
 在develop分支中有支持srt <br/>
-启动: ./objs/srs -c conf/srt.conf
+如何在srs中使用srt，请看wiki：[v4_CN_SRTWiki](https://github.com/ossrs/srs/wiki/v4_CN_SRTWiki) <br/>
+
 ### 3.2 srt_encoder 
 ./srt_encoder /mnt/move/test.mp4 'srt://10.100.1.100:10080?streamid=#!::h=srs.srt.com.cn/live/livestream,m=publish'<br/>
 命令行有两个参数：
