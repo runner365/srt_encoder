@@ -11,56 +11,7 @@ github地址: [https://github.com/runner365/srt_encoder](https://github.com/runn
 
 ## 2. 如何编译
 依赖ffmpeg动态库，libsrt, libx264, lib265, libfdk_aac等。
-### 2.1 libx264
-wget https://johnvansickle.com/ffmpeg/release-source/libx264-git.tar.xz <br/>
-xz -d libx264-git.tar.xz <br/>
-tar -xvf libx264-git.tar <br/>
-cd ./libx264-git <br/>
-./configure <br/>
-make -j 2 <br/>
-make install <br/>
-
-### 2.2 libx265
-yum install cmake
-wget https://johnvansickle.com/ffmpeg/release-source/libx265-git.tar.xz  <br/>
-xz -d libx265-git.tar.xz <br/>
-tar -xvf libx265-git.tar  <br/>
-cd libx265-git/source/ <br/>
-mkdir build <br/>
-cd build/ <br/>
-cmake .. <br/>
-make -j 2 <br/>
-make install <br/>
-
-### 2.3 libfdk_aac
-wget https://downloads.sourceforge.net/opencore-amr/fdk-aac-2.0.1.tar.gz  <br/>
-tar -xzvf fdk-aac-2.0.1.tar.gz   <br/>
-cd fdk-aac-2.0.1  <br/>
-./configure   <br/>
-make -j 2  <br/>
-make install  <br/>
-
-### 2.4 libsrt
-yum install git <br/>
-git clone https://github.com/Haivision/srt.git <br/>
-cd srt <br/>
-./configure <br/>
-make && make install <br/>
-
-### 2.5 ffmpeg
-wget https://johnvansickle.com/ffmpeg/release-source/ffmpeg-4.1.tar.xz <br/>
-xz -d ffmpeg-4.1.tar.xz <br/>
-tar -xvf ffmpeg-4.1.tar  <br/>
-cd ffmpeg-4.1 <br/>
-export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig <br/>
-./configure --target-os=linux --arch=x86_64 --enable-cross-compile --disable-avdevice --disable-doc --disable-devices --disable-ffplay --enable-libfdk-aac --enable-libx264 --enable-libx265 --enable-libsrt  --enable-nonfree --disable-asm --enable-gpl --pkgconfigdir=/usr/local/lib/pkgconfig --enable-shared <br/>
-make -j 2 <br/>
-make install
-
-### 2.6 srt_encoder
-cp lib/linux/libenc.so /usr/local/lib <br/>
-ln /usr/local/lib/libenc.so /lib64/libenc.so <br/>
-make根目下的Makefile即可 </br>
+如何编译请看wiki：[How to compile](https://github.com/runner365/srt_encoder/wiki/How-to-compile)
 
 ## 3. 如何运行
 ### 3.1 srt in srs
