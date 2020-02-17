@@ -1,3 +1,4 @@
+[English](https://github.com/runner365/srt_encoder/blob/master/README.md) | 中文
 # SRT Encoder
 SRT Encoder基于srt自适应bitrate的直播编码器。<br/>
 基于srt协议中的rtt，maxBw，inflight等信息预测低延时的出口带宽，动态的调整编码bitrate，从而实现基于网络出口带宽的编码。<br/>
