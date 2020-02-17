@@ -1,4 +1,4 @@
-Readme.md in English | [中文Readme.md](https://github.com/runner365/srt_encoder/blob/master/README-Cn.md)
+English | [中文](https://github.com/runner365/srt_encoder/blob/master/README-Cn.md)
 # SRT Encoder
 An adaptive encoder based on SRT.<br/>
 The encoder estimate the output bitrate based on rtt, maxBw, inflight to implement the adaptive bitrate encoder.
