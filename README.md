@@ -20,7 +20,7 @@ The adaptive encoder is developed based on ffmpeg4.1. It need to replace ffmpeg.
 ffmpeg4.1 official download: [ffmpeg-4.1.tar.xz](https://johnvansickle.com/ffmpeg/release-source/ffmpeg-4.1.tar.xz)
 
 ### 2.2 compile ffmpeg
-go to wiki：[How to compile](https://github.com/runner365/srt_encoder/wiki/How-to-compile-cn)
+go to wiki：[How to compile](https://github.com/runner365/srt_encoder/wiki/How-to-compile-en)
 
 ## 3. how to use it
 ### 3.1 srt in srs
