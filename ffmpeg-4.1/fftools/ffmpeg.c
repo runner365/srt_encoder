@@ -206,6 +206,7 @@ static int s_current_state;
 static int s_congestion_state;
 
 static int64_t s_video_bitrate;
+static int64_t s_current_bitrate;
 static int64_t s_last_video_perf_ts;
 
 static AVCodecContext *s_enc_ctx;
@@ -311,7 +312,7 @@ static void update_maxbw(unsigned long long maxbw) {
             }
         }
         s_avg_bw = total/BW_LIST_MAX;
-        av_log(NULL, AV_LOG_DEBUG, "update_maxbw s_bw_max:%llu, avg_bw:%ld.\r\n", 
+        av_log(NULL, AV_LOG_DEBUG, "update_maxbw s_bw_max:%llu, avg_bw:%llu.\r\n", 
             s_bw_max, s_avg_bw);
         //s_bw_max = (s_bw_max + s_avg_bw)*1.2/2;
     }
@@ -321,8 +322,7 @@ static void update_maxbw(unsigned long long maxbw) {
 //get the state whether adjust the encoder bitrate.
 static int srt_bitrate_get_state(int inflight) {
     const int INCR = 1316*8*3;
-    const int KEEP = 0;
-    const int DECR = -1316*8*3;
+    const int DECR = -1316*8*6;
     int64_t current_state = 0;
     int64_t final_state;
     double bdp;
@@ -346,8 +346,8 @@ static int srt_bitrate_get_state(int inflight) {
     for (int index = 0; index < STATE_LIST_MAX; index++) {
         final_state += s_state_array[index];
     }
-    srt_log("get congestion inflight:%d, _bw_max:%llu, _bw_avg:%llu, _rtt_min:%d, bdp:%f, final_state:%d, current_state:%d, \r\n",
-        inflight, s_bw_max, s_avg_bw, s_rtt_min, bdp, final_state, current_state);
+    //srt_log("get congestion inflight:%d, _bw_max:%llu, _bw_avg:%llu, _rtt_min:%d, bdp:%f, final_state:%d, current_state:%d, \r\n",
+    //    inflight, s_bw_max, s_avg_bw, s_rtt_min, bdp, final_state, current_state);
     if (final_state > (INCR)) {
         return STATE_INCR;
     } else if (final_state < (DECR - 1)) {
@@ -361,6 +361,8 @@ static void reset_vencode_bitrate(void) {
     const double INCR_RATION = 1.08;
     const double DECR_RATION = 0.85;
     int64_t now_ts;
+    char debug_buffer[1024];
+    char oper_sz[80];
 
     if (!g_is_srt) {
         return;
@@ -374,30 +376,45 @@ static void reset_vencode_bitrate(void) {
 
     if ((now_ts - s_last_video_perf_ts) > RESET_INTERVAL) {
         if (s_congestion_state == STATE_INCR) {//not adjust bitrate for bandwith is enough
-            int64_t new_bitrate = s_enc_ctx->bit_rate*INCR_RATION;
-
-            if (new_bitrate < s_video_bitrate*1.5) {
-                s_enc_ctx->bit_rate = new_bitrate;
+            s_current_bitrate = s_enc_ctx->bit_rate*INCR_RATION;
+            
+            if (s_current_bitrate < s_video_bitrate*1.3) {
+                snprintf(oper_sz, sizeof(oper_sz), "increase");
+                s_enc_ctx->bit_rate = s_current_bitrate;
                 s_enc_ctx->rc_max_rate = s_enc_ctx->rc_max_rate * INCR_RATION;
                 
                 s_enc_ctx->rc_buffer_size = s_enc_ctx->rc_buffer_size * INCR_RATION;
                 s_enc_ctx->rc_initial_buffer_occupancy = s_enc_ctx->rc_initial_buffer_occupancy * INCR_RATION;
-                srt_log("++++ encode increate bit_rate:%ld, configue bitrate:%ld\r\n",
-                    s_enc_ctx->bit_rate, s_video_bitrate);
+            } else {
+                snprintf(oper_sz, sizeof(oper_sz), "keep");
             }
+            snprintf(debug_buffer, sizeof(debug_buffer), 
+                "{\"timestamp\":\"%ld\", \"oper\":\"%s\", \"minrtt\":\"%d\", \"real_bitrate\":\"%ld\", \"conf_bitrate\":\"%ld\"}",
+                now_ts, oper_sz, s_rtt_min, s_current_bitrate, s_video_bitrate);
         } else if (s_congestion_state == STATE_DECR) {//adjust bitrate to estimate_bandwith cbr
-            int64_t new_bitrate = s_enc_ctx->bit_rate*DECR_RATION;
+            s_current_bitrate = s_enc_ctx->bit_rate*DECR_RATION;
 
-            if (new_bitrate > s_video_bitrate*0.4) {
-                s_enc_ctx->bit_rate = new_bitrate;
+            if (s_current_bitrate > s_video_bitrate*0.4) {
+                snprintf(oper_sz, sizeof(oper_sz), "decrease");
+                s_enc_ctx->bit_rate = s_current_bitrate;
                 s_enc_ctx->rc_max_rate = s_enc_ctx->rc_max_rate * DECR_RATION;
                 
                 s_enc_ctx->rc_buffer_size = s_enc_ctx->rc_buffer_size * DECR_RATION;
                 s_enc_ctx->rc_initial_buffer_occupancy = s_enc_ctx->rc_initial_buffer_occupancy * DECR_RATION;
-                srt_log("---- encode decreate bit_rate:%ld, configue bitrate:%ld\r\n",
-                    s_enc_ctx->bit_rate, s_video_bitrate);
+            } else {
+                snprintf(oper_sz, sizeof(oper_sz), "keep");
             }
+            snprintf(debug_buffer, sizeof(debug_buffer), 
+                "{\"timestamp\":\"%ld\", \"oper\":\"%s\", \"minrtt\":\"%d\", \"real_bitrate\":\"%ld\", \"conf_bitrate\":\"%ld\"}",
+                now_ts, oper_sz, s_rtt_min, s_current_bitrate, s_video_bitrate);
+        } else {
+            snprintf(oper_sz, sizeof(oper_sz), "keep");
+            snprintf(debug_buffer, sizeof(debug_buffer), 
+                "{\"timestamp\":\"%ld\", \"oper\":\"%s\", \"minrtt\":\"%d\", \"real_bitrate\":\"%ld\", \"conf_bitrate\":\"%ld\"}",
+                now_ts, oper_sz, s_rtt_min, s_current_bitrate, s_video_bitrate);
         }
+        srt_log("%s\r\n", debug_buffer);
+        //srt_log("%ld\r\n", s_current_bitrate);
 
         s_last_video_perf_ts = now_ts;
         return;
@@ -415,6 +432,54 @@ static int update_srt_enable(const char* url) {
     srt_log("srt is enable, url:%s\r\n", url);
     g_is_srt = 1;
     return 1;
+}
+
+
+static void congestion_ctrl(AVFormatContext *s) {
+    SRT_TRACEBSTATS perf;
+    int64_t now_ms;
+    int ret;
+    int64_t bw_bitrate;
+    int rtt;
+    int64_t inflight;
+    SRTContext* srtctx;
+
+    if (!g_is_srt) {
+        return;
+    }
+
+    srtctx = (SRTContext*)srt_ffio_geturlcontext(s->pb);
+    now_ms = av_gettime()/1000;
+
+    if (s_last_srt_ts == 0) {
+        s_last_srt_ts = now_ms;
+        return;
+    }
+
+    if ((now_ms - s_last_srt_ts) < SRT_CHECK_INTERVAL) {
+        return;
+    }
+    s_last_srt_ts = now_ms;
+    ret = srt_bstats(srtctx->fd, &perf, 1);
+    av_log(NULL, AV_LOG_DEBUG, "congestion ctrl(%p) return %d, rtt:%d, inflight:%ld, bw_bitrate:%ld, url:%s\r\n", 
+        srtctx, ret, rtt, inflight, bw_bitrate, s->url);
+    if (ret != 0) {
+        return;
+    }
+
+    inflight = perf.pktFlightSize*188*7;
+    bw_bitrate = perf.mbpsSendRate*1000*1000;//_last_send_bytes*8*1000/diff_t;
+    rtt = perf.msRTT;
+
+    if (rtt < RTT_MIN) {
+        rtt = RTT_MIN;
+    }
+
+    update_rtt(rtt);
+    update_maxbw(bw_bitrate);
+    s_congestion_state = srt_bitrate_get_state(inflight);
+
+    return;
 }
 
 /* sub2video hack:
@@ -1072,52 +1137,6 @@ static void write_packet(OutputFile *of, AVPacket *pkt, OutputStream *ost, int u
     av_packet_unref(pkt);
 }
 
-static void congestion_ctrl(AVFormatContext *s) {
-    SRT_TRACEBSTATS perf;
-    int64_t now_ms;
-    int ret;
-    int64_t bw_bitrate;
-    int rtt;
-    int64_t inflight;
-    SRTContext* srtctx;
-
-    if (!g_is_srt) {
-        return;
-    }
-
-    srtctx = (SRTContext*)srt_ffio_geturlcontext(s->pb);
-    now_ms = av_gettime()/1000;
-
-    if (s_last_srt_ts == 0) {
-        s_last_srt_ts = now_ms;
-        return;
-    }
-
-    if ((now_ms - s_last_srt_ts) < SRT_CHECK_INTERVAL) {
-        return;
-    }
-    s_last_srt_ts = now_ms;
-    ret = srt_bstats(srtctx->fd, &perf, 1);
-    av_log(NULL, AV_LOG_DEBUG, "congestion ctrl(%p) return %d, rtt:%d, inflight:%ld, bw_bitrate:%ld, url:%s\r\n", 
-        srtctx, ret, rtt, inflight, bw_bitrate, s->url);
-    if (ret != 0) {
-        return;
-    }
-
-    inflight = perf.pktFlightSize*188*7;
-    bw_bitrate = perf.mbpsSendRate*1000*1000;//_last_send_bytes*8*1000/diff_t;
-    rtt = perf.msRTT;
-
-    if (rtt < RTT_MIN) {
-        rtt = RTT_MIN;
-    }
-
-    update_rtt(rtt);
-    update_maxbw(bw_bitrate);
-    s_congestion_state = srt_bitrate_get_state(inflight);
-
-    return;
-}
 static void close_output_stream(OutputStream *ost)
 {
     OutputFile *of = output_files[ost->file_index];
