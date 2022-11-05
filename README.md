@@ -16,8 +16,9 @@ The encoder estimate the output bitrate based on rtt, maxBw, inflight and use th
 ## 2. how to compile
 The ffmpeg depends on libsrt, libx264, libfdk_aac.
 ### 2.1 replace ffmpeg.c
-The adaptive encoder is developed based on ffmpeg4.1. It need to replace ffmpeg.c and add srt_header.h in fftools fold. <br/>
-ffmpeg4.1 official download: [ffmpeg-4.1.tar.xz](https://johnvansickle.com/ffmpeg/release-source/ffmpeg-4.1.tar.xz)
+The adaptive encoder is developed based on ffmpeg4.1/ffmpeg5.1. It need to replace ffmpeg.c and add srt_header.h in fftools fold. <br/>
+ffmpeg4.1 official download: [ffmpeg-4.1.tar.xz](https://johnvansickle.com/ffmpeg/release-source/ffmpeg-4.1.tar.xz).<br/>
+ffmpeg5.1 from git:[ffmpeg.org](http://ffmpeg.org/download.html)
 
 ### 2.2 compile ffmpeg
 go to wiki：[How to compile](https://github.com/runner365/srt_encoder/wiki/How-to-compile-en)
